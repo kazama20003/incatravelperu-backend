@@ -106,7 +106,7 @@ export class AuthController {
     res.clearCookie('token', COOKIE_OPTIONS);
     res.cookie('token', loginResult.access_token, COOKIE_OPTIONS);
 
-    return res.redirect('https://cabanacondecuscobybus.com/api/login');
+    return res.redirect('https://cabanacondecuscobybus.com/login');
   }
 
   // FACEBOOK LOGIN
