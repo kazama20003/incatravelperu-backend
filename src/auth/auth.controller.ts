@@ -106,7 +106,7 @@ export class AuthController {
     res.clearCookie('token', COOKIE_OPTIONS);
     res.cookie('token', loginResult.access_token, COOKIE_OPTIONS);
 
-    return res.redirect('https://tawantinsuyoperu.com/login');
+    return res.redirect('https://cabanacondecuscobybus.com/api/login');
   }
 
   // FACEBOOK LOGIN
@@ -125,7 +125,7 @@ export class AuthController {
     res.clearCookie('token', COOKIE_OPTIONS);
     res.cookie('token', loginResult.access_token, COOKIE_OPTIONS);
 
-    return res.redirect('https://tawantinsuyoperu.com/login');
+    return res.redirect('https://cabanacondecuscobybus.com/login');
   }
 
   // UPDATE USER
