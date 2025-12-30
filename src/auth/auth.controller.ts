@@ -28,7 +28,7 @@ const COOKIE_OPTIONS: CookieOptions = {
   secure: true,
   sameSite: 'none',
   path: '/',
-  domain: '.cabanacondecuscobybus.com.com',
+  domain: '.cabanacondecuscobybus.com',
   maxAge: 1000 * 60 * 60 * 24 * 7,
 };
 
