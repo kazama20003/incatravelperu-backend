@@ -31,6 +31,22 @@ export class MailService {
     params: PaymentConfirmationParams,
   ): Promise<void> {
     try {
+      const adminHtml = `
+        <h2>Nueva orden registrada</h2>
+
+        <p><strong>Cliente:</strong> ${params.customerName}</p>
+        <p><strong>Email:</strong> ${params.to}</p>
+
+        <p><strong>ID Orden:</strong> ${params.orderId}</p>
+        <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
+
+        <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
+        <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
+
+        <hr />
+        <p>Notificación automática del sistema Inca Travel Peru.</p>
+      `;
+
       await this.http.axiosRef.post(
         'https://api.brevo.com/v3/smtp/email',
         {
@@ -38,80 +54,45 @@ export class MailService {
             email: process.env.MAIL_FROM || 'reservas.incatravelperu@gmail.com',
             name: 'Inca Travel Peru',
           },
-          to: [
+
+          messageVersions: [
+            // ============================================================
+            // CLIENTE
+            // ============================================================
             {
-              email: params.to,
-              name: params.customerName,
+              to: [{ email: params.to, name: params.customerName }],
+              subject: 'Pago confirmado - Inca Travel Peru',
+              htmlContent: `
+                <h2>Pago Confirmado</h2>
+                <p>Hola <strong>${params.customerName}</strong>, tu pago fue procesado correctamente.</p>
+
+                <p>Tu código de reserva es:</p>
+                <h1>${params.confirmationCode}</h1>
+
+                <p>
+                  <a href="https://incatravelperu.com/reservas/${params.confirmationCode}">
+                    Ver mi reserva
+                  </a>
+                </p>
+
+                <p>Gracias por confiar en nosotros.</p>
+              `,
+            },
+
+            // ============================================================
+            // ADMINISTRADOR
+            // ============================================================
+            {
+              to: [
+                {
+                  email: 'reservas.incatravelperu@gmail.com',
+                  name: 'Administrador Inca Travel Peru',
+                },
+              ],
+              subject: 'NUEVA ORDEN REGISTRADA – Inca Travel Peru',
+              htmlContent: adminHtml,
             },
           ],
-          // ENVÍO DE COPIA OCULTA A TI
-          bcc: [
-            {
-              email: 'reservas.incatravelperu@gmail.com',
-              name: 'Administrador Inca Travel Peru',
-            },
-          ],
-          subject: '✅ Pago confirmado - Inca Travel Peru',
-          htmlContent: `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Pago confirmado</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0">
-    <tr>
-      <td align="center" style="padding:24px;">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-
-          <tr>
-            <td style="background:#0d9488;color:#ffffff;padding:20px 24px;">
-              <h1 style="margin:0;font-size:22px;">Pago confirmado</h1>
-              <p style="margin:4px 0 0;font-size:14px;">Gracias por elegir Inca Travel Peru</p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:24px;color:#333333;">
-              <p style="margin-top:0;font-size:15px;">Hola <strong>${params.customerName}</strong>,</p>
-
-              <p style="font-size:14px;line-height:1.6;">
-                Tu pago ha sido procesado correctamente. Puedes acceder a tu reserva usando este enlace:
-              </p>
-
-              <p style="text-align:center;margin:28px 0;">
-                <a href="https://incatravelperu.com/reservas/${params.confirmationCode}"
-                   style="background:#0d9488;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-size:14px;display:inline-block;">
-                  Ver mi reserva
-                </a>
-              </p>
-
-              <p style="font-size:14px;line-height:1.6;">Guarda tu código de reserva:</p>
-
-              <p style="text-align:center;font-size:20px;font-weight:bold;">
-                ${params.confirmationCode}
-              </p>
-
-              <p style="margin-bottom:0;font-size:14px;">
-                Nuestro equipo se pondrá en contacto contigo para coordinar los detalles.
-              </p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="background:#f1f5f9;padding:16px 24px;font-size:12px;color:#64748b;text-align:center;">
-              © ${new Date().getFullYear()} Inca Travel Peru · Todos los derechos reservados
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-`,
         },
         {
           headers: {
@@ -127,7 +108,7 @@ export class MailService {
   }
 
   // ============================================================
-  // 2. USUARIO INVITADO (SIN CUENTA) — CON DETALLES DE ITEMS
+  // 2. USUARIO INVITADO (CON LISTA DE ITEMS)
   // ============================================================
   async sendGuestPaymentConfirmation(
     params: PaymentConfirmationParams,
@@ -136,16 +117,45 @@ export class MailService {
       const itemsRows = params.items
         .map(
           (item) => `
-          <tr>
-            <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:14px;">${item.name}</td>
-            <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:center;">${item.quantity}</td>
-            <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:center;">${item.date}</td>
-            <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:right;">${item.unitPrice} ${params.currency}</td>
-            <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:right;">${item.totalPrice} ${params.currency}</td>
-          </tr>
-        `,
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.quantity}</td>
+              <td>${item.date}</td>
+              <td>${item.unitPrice} ${params.currency}</td>
+              <td>${item.totalPrice} ${params.currency}</td>
+            </tr>
+          `,
         )
         .join('');
+
+      const adminHtml = `
+        <h2>Nueva orden registrada (Invitado)</h2>
+
+        <p><strong>Cliente:</strong> ${params.customerName}</p>
+        <p><strong>Email:</strong> ${params.to}</p>
+
+        <p><strong>ID Orden:</strong> ${params.orderId}</p>
+        <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
+
+        <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
+        <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
+
+        <h3>Items:</h3>
+
+        <table border="1" cellpadding="6">
+          <tr>
+            <th>Producto</th>
+            <th>Cant.</th>
+            <th>Fecha</th>
+            <th>P. Unit</th>
+            <th>Total</th>
+          </tr>
+          ${itemsRows}
+        </table>
+
+        <hr />
+        <p>Notificación automática del sistema Inca Travel Peru.</p>
+      `;
 
       await this.http.axiosRef.post(
         'https://api.brevo.com/v3/smtp/email',
@@ -154,108 +164,55 @@ export class MailService {
             email: process.env.MAIL_FROM || 'reservas.incatravelperu@gmail.com',
             name: 'Inca Travel Peru',
           },
-          to: [
+
+          messageVersions: [
+            // ============================================================
+            // CLIENTE INVITADO
+            // ============================================================
             {
-              email: params.to,
-              name: params.customerName,
-            },
-          ],
-          // COPIA OCULTA A TI
-          bcc: [
-            {
-              email: 'reservas.incatravelperu@gmail.com',
-              name: 'Administrador Inca Travel Peru',
-            },
-          ],
-          subject: '✅ Pago confirmado – Tu reserva en Inca Travel Peru',
-          htmlContent: `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Pago confirmado</title>
-</head>
+              to: [{ email: params.to, name: params.customerName }],
+              subject: 'Pago confirmado – Tu reserva Inca Travel Peru',
+              htmlContent: `
+                <h2>Pago Confirmado</h2>
 
-<body style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+                <p>Hola <strong>${params.customerName}</strong>,</p>
 
-  <table width="100%" cellpadding="0" cellspacing="0">
-    <tr>
-      <td align="center" style="padding:24px;">
+                <p>Tu código de reserva es:</p>
+                <h1>${params.confirmationCode}</h1>
 
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+                <p><strong>Total pagado:</strong> ${params.total} ${params.currency}</p>
 
-          <tr>
-            <td style="background:#0d9488;color:#ffffff;padding:20px 24px;">
-              <h1 style="margin:0;font-size:22px;">Pago confirmado</h1>
-              <p style="margin:4px 0 0;font-size:14px;">Gracias por elegir Inca Travel Peru</p>
-            </td>
-          </tr>
+                <h3>Detalles de tu compra</h3>
 
-          <tr>
-            <td style="padding:24px;color:#333333;font-size:15px;">
-
-              <p style="margin-top:0;">Hola <strong>${params.customerName}</strong>,</p>
-
-              <p style="line-height:1.6;">
-                Hemos recibido tu pago exitosamente.
-                Puedes ver tu reserva usando este enlace:
-              </p>
-
-              <p style="text-align:center;margin:28px 0;">
-                <a href="https://incatravelperu.com/users/profile"
-                   style="background:#0d9488;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-size:14px;display:inline-block;">
-                  Ver mi reserva
-                </a>
-              </p>
-
-              <p style="text-align:center;font-size:16px;margin-bottom:24px;">
-                <strong>Código de reserva:</strong><br />
-                <span style="font-size:22px;">${params.confirmationCode}</span>
-              </p>
-
-              <h3 style="font-size:16px;margin:0 0 12px 0;">Detalles de tu compra:</h3>
-
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9fafb;border:1px solid #e5e7eb;">
-                <thead>
-                  <tr style="background:#e5e7eb;">
-                    <th style="padding:10px;font-size:14px;text-align:left;">Producto</th>
-                    <th style="padding:10px;font-size:14px;text-align:center;">Cantidad</th>
-                    <th style="padding:10px;font-size:14px;text-align:center;">Fecha</th>
-                    <th style="padding:10px;font-size:14px;text-align:right;">Precio</th>
-                    <th style="padding:10px;font-size:14px;text-align:right;">Total</th>
+                <table border="1" cellpadding="6">
+                  <tr>
+                    <th>Producto</th>
+                    <th>Cant.</th>
+                    <th>Fecha</th>
+                    <th>P. Unit</th>
+                    <th>Total</th>
                   </tr>
-                </thead>
-                <tbody>
                   ${itemsRows}
-                </tbody>
-              </table>
+                </table>
 
-              <p style="text-align:right;font-size:18px;margin-top:18px;">
-                <strong>Total pagado: ${params.total} ${params.currency}</strong>
-              </p>
+                <p>Gracias por confiar en nosotros.</p>
+              `,
+            },
 
-              <p style="line-height:1.6;margin-top:24px;">
-                Nuestro equipo se pondrá en contacto contigo para coordinar los detalles.
-              </p>
-
-            </td>
-          </tr>
-
-          <tr>
-            <td style="background:#f1f5f9;padding:16px 24px;font-size:12px;color:#64748b;text-align:center;">
-              © ${new Date().getFullYear()} Inca Travel Peru · Todos los derechos reservados
-            </td>
-          </tr>
-
-        </table>
-
-      </td>
-    </tr>
-  </table>
-
-</body>
-</html>
-`,
+            // ============================================================
+            // ADMINISTRADOR
+            // ============================================================
+            {
+              to: [
+                {
+                  email: 'reservas.incatravelperu@gmail.com',
+                  name: 'Administrador Inca Travel Peru',
+                },
+              ],
+              subject: 'NUEVA ORDEN REGISTRADA – Invitado',
+              htmlContent: adminHtml,
+            },
+          ],
         },
         {
           headers: {
