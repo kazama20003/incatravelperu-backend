@@ -32,20 +32,29 @@ export class MailService {
   ): Promise<void> {
     try {
       const adminHtml = `
-        <h2>Nueva orden registrada</h2>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Nueva Orden</title>
+</head>
+<body>
+  <h2>Nueva orden registrada</h2>
 
-        <p><strong>Cliente:</strong> ${params.customerName}</p>
-        <p><strong>Email:</strong> ${params.to}</p>
+  <p><strong>Cliente:</strong> ${params.customerName}</p>
+  <p><strong>Email:</strong> ${params.to}</p>
 
-        <p><strong>ID Orden:</strong> ${params.orderId}</p>
-        <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
+  <p><strong>ID Orden:</strong> ${params.orderId}</p>
+  <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
 
-        <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
-        <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
+  <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
+  <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
 
-        <hr />
-        <p>Notificación automática del sistema Inca Travel Peru.</p>
-      `;
+  <hr />
+  <p>Notificación automática del sistema Inca Travel Peru.</p>
+</body>
+</html>
+`;
 
       await this.http.axiosRef.post(
         'https://api.brevo.com/v3/smtp/email',
@@ -57,30 +66,42 @@ export class MailService {
 
           messageVersions: [
             // ============================================================
-            // CLIENTE
+            // CORREO PARA CLIENTE
             // ============================================================
             {
               to: [{ email: params.to, name: params.customerName }],
               subject: 'Pago confirmado - Inca Travel Peru',
               htmlContent: `
-                <h2>Pago Confirmado</h2>
-                <p>Hola <strong>${params.customerName}</strong>, tu pago fue procesado correctamente.</p>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Pago confirmado</title>
+</head>
+<body>
 
-                <p>Tu código de reserva es:</p>
-                <h1>${params.confirmationCode}</h1>
+  <h2>Pago Confirmado</h2>
 
-                <p>
-                  <a href="https://incatravelperu.com/reservas/${params.confirmationCode}">
-                    Ver mi reserva
-                  </a>
-                </p>
+  <p>Hola <strong>${params.customerName}</strong>, tu pago fue procesado correctamente.</p>
 
-                <p>Gracias por confiar en nosotros.</p>
+  <p>Tu código de reserva es:</p>
+  <h1>${params.confirmationCode}</h1>
+
+  <p>
+    <a href="https://incatravelperu.com/reservas/${params.confirmationCode}">
+      Ver mi reserva
+    </a>
+  </p>
+
+  <p>Gracias por confiar en nosotros.</p>
+
+</body>
+</html>
               `,
             },
 
             // ============================================================
-            // ADMINISTRADOR
+            // CORREO PARA ADMINISTRADOR
             // ============================================================
             {
               to: [
@@ -108,7 +129,7 @@ export class MailService {
   }
 
   // ============================================================
-  // 2. USUARIO INVITADO (CON LISTA DE ITEMS)
+  // 2. USUARIO INVITADO
   // ============================================================
   async sendGuestPaymentConfirmation(
     params: PaymentConfirmationParams,
@@ -117,45 +138,56 @@ export class MailService {
       const itemsRows = params.items
         .map(
           (item) => `
-            <tr>
-              <td>${item.name}</td>
-              <td>${item.quantity}</td>
-              <td>${item.date}</td>
-              <td>${item.unitPrice} ${params.currency}</td>
-              <td>${item.totalPrice} ${params.currency}</td>
-            </tr>
-          `,
+<tr>
+  <td>${item.name}</td>
+  <td>${item.quantity}</td>
+  <td>${item.date}</td>
+  <td>${item.unitPrice} ${params.currency}</td>
+  <td>${item.totalPrice} ${params.currency}</td>
+</tr>
+`,
         )
         .join('');
 
       const adminHtml = `
-        <h2>Nueva orden registrada (Invitado)</h2>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Nueva Orden Invitado</title>
+</head>
+<body>
 
-        <p><strong>Cliente:</strong> ${params.customerName}</p>
-        <p><strong>Email:</strong> ${params.to}</p>
+  <h2>Nueva orden registrada (Invitado)</h2>
 
-        <p><strong>ID Orden:</strong> ${params.orderId}</p>
-        <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
+  <p><strong>Cliente:</strong> ${params.customerName}</p>
+  <p><strong>Email:</strong> ${params.to}</p>
 
-        <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
-        <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
+  <p><strong>ID Orden:</strong> ${params.orderId}</p>
+  <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
 
-        <h3>Items:</h3>
+  <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
+  <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
 
-        <table border="1" cellpadding="6">
-          <tr>
-            <th>Producto</th>
-            <th>Cant.</th>
-            <th>Fecha</th>
-            <th>P. Unit</th>
-            <th>Total</th>
-          </tr>
-          ${itemsRows}
-        </table>
+  <h3>Items:</h3>
 
-        <hr />
-        <p>Notificación automática del sistema Inca Travel Peru.</p>
-      `;
+  <table border="1" cellpadding="6">
+    <tr>
+      <th>Producto</th>
+      <th>Cant.</th>
+      <th>Fecha</th>
+      <th>P. Unit</th>
+      <th>Total</th>
+    </tr>
+    ${itemsRows}
+  </table>
+
+  <hr />
+  <p>Notificación automática del sistema Inca Travel Peru.</p>
+
+</body>
+</html>
+`;
 
       await this.http.axiosRef.post(
         'https://api.brevo.com/v3/smtp/email',
@@ -173,29 +205,40 @@ export class MailService {
               to: [{ email: params.to, name: params.customerName }],
               subject: 'Pago confirmado – Tu reserva Inca Travel Peru',
               htmlContent: `
-                <h2>Pago Confirmado</h2>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Pago Confirmado</title>
+</head>
+<body>
 
-                <p>Hola <strong>${params.customerName}</strong>,</p>
+  <h2>Pago Confirmado</h2>
 
-                <p>Tu código de reserva es:</p>
-                <h1>${params.confirmationCode}</h1>
+  <p>Hola <strong>${params.customerName}</strong>,</p>
 
-                <p><strong>Total pagado:</strong> ${params.total} ${params.currency}</p>
+  <p>Tu código de reserva es:</p>
+  <h1>${params.confirmationCode}</h1>
 
-                <h3>Detalles de tu compra</h3>
+  <p><strong>Total pagado:</strong> ${params.total} ${params.currency}</p>
 
-                <table border="1" cellpadding="6">
-                  <tr>
-                    <th>Producto</th>
-                    <th>Cant.</th>
-                    <th>Fecha</th>
-                    <th>P. Unit</th>
-                    <th>Total</th>
-                  </tr>
-                  ${itemsRows}
-                </table>
+  <h3>Detalles de tu compra</h3>
 
-                <p>Gracias por confiar en nosotros.</p>
+  <table border="1" cellpadding="6">
+    <tr>
+      <th>Producto</th>
+      <th>Cant.</th>
+      <th>Fecha</th>
+      <th>P. Unit</th>
+      <th>Total</th>
+    </tr>
+    ${itemsRows}
+  </table>
+
+  <p>Gracias por confiar en nosotros.</p>
+
+</body>
+</html>
               `,
             },
 
