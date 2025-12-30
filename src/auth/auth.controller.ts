@@ -28,7 +28,7 @@ const COOKIE_OPTIONS: CookieOptions = {
   secure: true,
   sameSite: 'none',
   path: '/',
-  domain: '.tawantinsuyoperu.com',
+  domain: '.cabanacondecuscobybus.com.com',
   maxAge: 1000 * 60 * 60 * 24 * 7,
 };
 
