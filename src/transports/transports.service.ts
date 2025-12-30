@@ -173,4 +173,17 @@ export class TransportsService {
 
     return this.mapTransport(transport, lang);
   }
+  // ------------------------------------------
+  // TOP 4 (los primeros transportes agregados)
+  // ------------------------------------------
+  async findTop(lang?: Lang): Promise<TransportPlain[]> {
+    const transports = await this.transportModel
+      .find()
+      .populate('vehicle')
+      .sort({ createdAt: -1 }) // -1 = más recientes primero | 1 = más antiguos
+      .limit(4)
+      .exec();
+
+    return transports.map((t) => this.mapTransport(t, lang));
+  }
 }

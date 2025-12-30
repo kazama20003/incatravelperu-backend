@@ -40,6 +40,11 @@ export class TransportsController {
 
     return this.transportsService.findAll(lang, pagination);
   }
+  // TOP 4 TRANSPORTS
+  @Get('ext/top')
+  getTop(@Query('lang') lang?: Lang) {
+    return this.transportsService.findTop(lang);
+  }
 
   // FIND ONE (with lang)
   @Get(':id')
