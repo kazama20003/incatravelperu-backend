@@ -25,7 +25,7 @@ export class MailService {
   constructor(private readonly http: HttpService) {}
 
   // ============================================================
-  // 1. USUARIO LOGUEADO
+  // CLIENTE LOGUEADO
   // ============================================================
   async sendPaymentConfirmation(
     params: PaymentConfirmationParams,
@@ -64,9 +64,14 @@ export class MailService {
             name: 'Inca Travel Peru',
           },
 
+          // ✔ Brevo requiere un SUBJECT y HTML genérico obligatorios
+          subject: 'Notificación de Pago',
+          htmlContent: '<p>Notificación de reserva</p>',
+          to: [{ email: params.to }],
+
           messageVersions: [
             // ============================================================
-            // CORREO PARA CLIENTE
+            // CLIENTE
             // ============================================================
             {
               to: [{ email: params.to, name: params.customerName }],
@@ -74,17 +79,12 @@ export class MailService {
               htmlContent: `
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8" />
-<title>Pago confirmado</title>
-</head>
+<head><meta charset="UTF-8" /><title>Pago confirmado</title></head>
 <body>
-
   <h2>Pago Confirmado</h2>
-
   <p>Hola <strong>${params.customerName}</strong>, tu pago fue procesado correctamente.</p>
 
-  <p>Tu código de reserva es:</p>
+  <p>Código de reserva:</p>
   <h1>${params.confirmationCode}</h1>
 
   <p>
@@ -94,14 +94,13 @@ export class MailService {
   </p>
 
   <p>Gracias por confiar en nosotros.</p>
-
 </body>
 </html>
               `,
             },
 
             // ============================================================
-            // CORREO PARA ADMINISTRADOR
+            // ADMINISTRADOR
             // ============================================================
             {
               to: [
@@ -115,6 +114,7 @@ export class MailService {
             },
           ],
         },
+
         {
           headers: {
             'api-key': process.env.BREVO_API_KEY,
@@ -129,7 +129,7 @@ export class MailService {
   }
 
   // ============================================================
-  // 2. USUARIO INVITADO
+  // CLIENTE INVITADO
   // ============================================================
   async sendGuestPaymentConfirmation(
     params: PaymentConfirmationParams,
@@ -144,18 +144,14 @@ export class MailService {
   <td>${item.date}</td>
   <td>${item.unitPrice} ${params.currency}</td>
   <td>${item.totalPrice} ${params.currency}</td>
-</tr>
-`,
+</tr>`,
         )
         .join('');
 
       const adminHtml = `
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8" />
-<title>Nueva Orden Invitado</title>
-</head>
+<head><meta charset="UTF-8" /><title>Nueva Orden Invitado</title></head>
 <body>
 
   <h2>Nueva orden registrada (Invitado)</h2>
@@ -197,6 +193,11 @@ export class MailService {
             name: 'Inca Travel Peru',
           },
 
+          // ✔ Brevo requiere esto fuera de messageVersions
+          subject: 'Notificación de Pago',
+          htmlContent: '<p>Notificación de reserva</p>',
+          to: [{ email: params.to }],
+
           messageVersions: [
             // ============================================================
             // CLIENTE INVITADO
@@ -207,22 +208,18 @@ export class MailService {
               htmlContent: `
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8" />
-<title>Pago Confirmado</title>
-</head>
+<head><meta charset="UTF-8" /><title>Pago Confirmado</title></head>
 <body>
 
   <h2>Pago Confirmado</h2>
-
   <p>Hola <strong>${params.customerName}</strong>,</p>
 
-  <p>Tu código de reserva es:</p>
+  <p>Código de reserva:</p>
   <h1>${params.confirmationCode}</h1>
 
   <p><strong>Total pagado:</strong> ${params.total} ${params.currency}</p>
 
-  <h3>Detalles de tu compra</h3>
+  <h3>Detalles:</h3>
 
   <table border="1" cellpadding="6">
     <tr>
@@ -234,8 +231,6 @@ export class MailService {
     </tr>
     ${itemsRows}
   </table>
-
-  <p>Gracias por confiar en nosotros.</p>
 
 </body>
 </html>
@@ -257,6 +252,7 @@ export class MailService {
             },
           ],
         },
+
         {
           headers: {
             'api-key': process.env.BREVO_API_KEY,
