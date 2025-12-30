@@ -42,9 +42,9 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000', // desarrollo local
-      'https://api.tawantinsuyoperu.com', // backend en producción
-      'https://tawantinsuyoperu.com', // frontend en producción
-      'https://www.tawantinsuyoperu.com', // opcional si usas www
+      'https://api.cabanacondecuscobybus.com/api', // backend en producción
+      'https://cabanacondecuscobybus.com', // frontend en producción
+      'https://www.cabanacondecuscobybus.com', // opcional si usas www
     ],
     credentials: true,
   });
@@ -64,7 +64,7 @@ async function bootstrap() {
   // Swagger
   if (envs.enableSwagger) {
     const swagger = new DocumentBuilder()
-      .setTitle('API Etourism')
+      .setTitle('API Inca travel Peru - Tours y Reservas')
       .setDescription(
         'Documentación de la API para el sitio de reservas de tours',
       )
