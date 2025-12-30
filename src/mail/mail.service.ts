@@ -24,9 +24,9 @@ export class MailService {
 
   constructor(private readonly http: HttpService) {}
 
-  // ============================================================
+  // ============================================================================
   // CLIENTE LOGUEADO
-  // ============================================================
+  // ============================================================================
   async sendPaymentConfirmation(
     params: PaymentConfirmationParams,
   ): Promise<void> {
@@ -34,20 +34,17 @@ export class MailService {
       const adminHtml = `
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8" />
-<title>Nueva Orden</title>
-</head>
+<head><meta charset="UTF-8" /><title>Nueva Orden</title></head>
 <body>
-  <h2>Nueva orden registrada</h2>
+  <h2>Nueva orden registrada (Usuario Logueado)</h2>
 
   <p><strong>Cliente:</strong> ${params.customerName}</p>
   <p><strong>Email:</strong> ${params.to}</p>
 
   <p><strong>ID Orden:</strong> ${params.orderId}</p>
   <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
-
   <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
+
   <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
 
   <hr />
@@ -64,22 +61,22 @@ export class MailService {
             name: 'Inca Travel Peru',
           },
 
-          // ✔ Brevo requiere un SUBJECT y HTML genérico obligatorios
+          // ✔ Obligatorios para Brevo (pero no para enviar)
           subject: 'Notificación de Pago',
-          htmlContent: '<p>Notificación de reserva</p>',
-          to: [{ email: params.to }],
+          htmlContent: '<p>Notificación</p>',
+
+          // ❗ IMPORTANTE: NO enviar "to" en el root
+          // to: [],  ← ELIMINADO
 
           messageVersions: [
-            // ============================================================
-            // CLIENTE
-            // ============================================================
+            // =================== CLIENTE ===================
             {
               to: [{ email: params.to, name: params.customerName }],
               subject: 'Pago confirmado - Inca Travel Peru',
               htmlContent: `
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8" /><title>Pago confirmado</title></head>
+<head><meta charset="UTF-8"><title>Pago Confirmado</title></head>
 <body>
   <h2>Pago Confirmado</h2>
   <p>Hola <strong>${params.customerName}</strong>, tu pago fue procesado correctamente.</p>
@@ -87,26 +84,20 @@ export class MailService {
   <p>Código de reserva:</p>
   <h1>${params.confirmationCode}</h1>
 
-  <p>
-    <a href="https://incatravelperu.com/reservas/${params.confirmationCode}">
-      Ver mi reserva
-    </a>
-  </p>
+  <p><a href="https://incatravelperu.com/reservas/${params.confirmationCode}">Ver mi reserva</a></p>
 
   <p>Gracias por confiar en nosotros.</p>
 </body>
 </html>
-              `,
+`,
             },
 
-            // ============================================================
-            // ADMINISTRADOR
-            // ============================================================
+            // =================== ADMINISTRADOR ===================
             {
               to: [
                 {
                   email: 'reservas.incatravelperu@gmail.com',
-                  name: 'Administrador Inca Travel Peru',
+                  name: 'Administrador',
                 },
               ],
               subject: 'NUEVA ORDEN REGISTRADA – Inca Travel Peru',
@@ -128,9 +119,9 @@ export class MailService {
     }
   }
 
-  // ============================================================
+  // ============================================================================
   // CLIENTE INVITADO
-  // ============================================================
+  // ============================================================================
   async sendGuestPaymentConfirmation(
     params: PaymentConfirmationParams,
   ): Promise<void> {
@@ -161,12 +152,9 @@ export class MailService {
 
   <p><strong>ID Orden:</strong> ${params.orderId}</p>
   <p><strong>Código de reserva:</strong> ${params.confirmationCode}</p>
-
   <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
-  <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
 
   <h3>Items:</h3>
-
   <table border="1" cellpadding="6">
     <tr>
       <th>Producto</th>
@@ -178,8 +166,7 @@ export class MailService {
     ${itemsRows}
   </table>
 
-  <hr />
-  <p>Notificación automática del sistema Inca Travel Peru.</p>
+  <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
 
 </body>
 </html>
@@ -193,15 +180,14 @@ export class MailService {
             name: 'Inca Travel Peru',
           },
 
-          // ✔ Brevo requiere esto fuera de messageVersions
           subject: 'Notificación de Pago',
-          htmlContent: '<p>Notificación de reserva</p>',
-          to: [{ email: params.to }],
+          htmlContent: '<p>Notificación</p>',
+
+          // ❗ No enviar "to" a nivel root
+          // to: [],
 
           messageVersions: [
-            // ============================================================
-            // CLIENTE INVITADO
-            // ============================================================
+            // =================== CLIENTE INVITADO ===================
             {
               to: [{ email: params.to, name: params.customerName }],
               subject: 'Pago confirmado – Tu reserva Inca Travel Peru',
@@ -210,17 +196,16 @@ export class MailService {
 <html>
 <head><meta charset="UTF-8" /><title>Pago Confirmado</title></head>
 <body>
-
   <h2>Pago Confirmado</h2>
+
   <p>Hola <strong>${params.customerName}</strong>,</p>
 
   <p>Código de reserva:</p>
   <h1>${params.confirmationCode}</h1>
 
-  <p><strong>Total pagado:</strong> ${params.total} ${params.currency}</p>
+  <p><strong>Total:</strong> ${params.total} ${params.currency}</p>
 
-  <h3>Detalles:</h3>
-
+  <h3>Detalles de compra</h3>
   <table border="1" cellpadding="6">
     <tr>
       <th>Producto</th>
@@ -234,19 +219,12 @@ export class MailService {
 
 </body>
 </html>
-              `,
+`,
             },
 
-            // ============================================================
-            // ADMINISTRADOR
-            // ============================================================
+            // =================== ADMINISTRADOR ===================
             {
-              to: [
-                {
-                  email: 'reservas.incatravelperu@gmail.com',
-                  name: 'Administrador Inca Travel Peru',
-                },
-              ],
+              to: [{ email: 'reservas.incatravelperu@gmail.com' }],
               subject: 'NUEVA ORDEN REGISTRADA – Invitado',
               htmlContent: adminHtml,
             },
