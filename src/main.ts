@@ -42,7 +42,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3001', // desarrollo local
-      'https://api.cabanacondecuscobybus.com/api', // backend en producción
+      'https://api.cabanacondecuscobybus.com', // backend en producción
       'https://cabanacondecuscobybus.com', // frontend en producción
       'https://www.cabanacondecuscobybus.com', // opcional si usas www
     ],
